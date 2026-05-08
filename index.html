@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Nút né</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    width:100vw;
+    height:100vh;
+    overflow:hidden;
+    background:#111;
+    font-family:sans-serif;
+    position:relative;
+}
+
+/* câu hỏi */
+h1{
+    position:fixed;
+    top:28%;
+    left:50%;
+    transform:translateX(-50%);
+    color:white;
+    font-size:26px;
+    width:90%;
+    text-align:center;
+}
+
+/* style chung */
+button{
+    position:fixed;
+    border:none;
+    border-radius:16px;
+    padding:16px 32px;
+    font-size:20px;
+    font-weight:bold;
+    color:white;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:
+        left .08s linear,
+        top .08s linear,
+        transform .08s linear;
+}
+
+/* nút Có */
+#yesBtn{
+    background:#00d4ff;
+    box-shadow:0 10px 30px rgba(0,212,255,.4);
+
+    left:75%;
+    top:50%;
+
+    transform:translate(-50%,-50%);
+}
+
+/* nút Không */
+#noBtn{
+    background:#ff2e63;
+    box-shadow:0 10px 30px rgba(255,0,100,.4);
+
+    left:25%;
+    top:50%;
+
+    transform:translate(-50%,-50%);
+
+    transition:
+        left .08s linear,
+        top .08s linear,
+        transform .08s linear;
+}
+
+/* popup */
+.popup-overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.5);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+    animation:fadeIn .3s ease-in;
+}
+
+.popup-overlay.active{
+    display:flex;
+}
+
+.popup-content{
+    background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding:40px 60px;
+    border-radius:20px;
+    text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,0.3);
+    animation:popIn .5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.popup-content h2{
+    color:white;
+    font-size:32px;
+    margin:0;
+    text-shadow:2px 2px 4px rgba(0,0,0,0.3);
+}
+
+@keyframes fadeIn{
+    from{
+        opacity:0;
+    }
+    to{
+        opacity:1;
+    }
+}
+
+@keyframes popIn{
+    0%{
+        transform:scale(0) rotate(0deg);
+        opacity:0;
+    }
+    50%{
+        transform:scale(1.1) rotate(5deg);
+    }
+    100%{
+        transform:scale(1) rotate(0deg);
+        opacity:1;
+    }
+}
+
+@keyframes confetti-fall{
+    to{
+        transform:translateY(100vh) rotate(720deg);
+        opacity:0;
+    }
+}
+
+.confetti{
+    position:fixed;
+    width:10px;
+    height:10px;
+    pointer-events:none;
+    animation:confetti-fall 3s ease-in forwards;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1 id="question">
+    Em có thíc a khum ? 🥰
+</h1>
+
+<button id="noBtn">
+    Không
+</button>
+
+<button id="yesBtn">
+    Có 👉👈
+</button>
+
+<div class="popup-overlay" id="popupOverlay">
+    <div class="popup-content">
+        <h2>A biết mà hehe 😎</h2>
+    </div>
+</div>
+
+<script>
+const noBtn = document.getElementById("noBtn");
+const yesBtn = document.getElementById("yesBtn");
+const question = document.getElementById("question");
+const popupOverlay = document.getElementById("popupOverlay");
+
+function createConfetti(){
+    const colors = ["#ff2e63", "#00d4ff", "#667eea", "#764ba2", "#ffd700", "#00ff00", "#ff69b4"];
+    
+    for(let i = 0; i < 50; i++){
+        const confetti = document.createElement("div");
+        confetti.classList.add("confetti");
+        confetti.style.left = Math.random() * window.innerWidth + "px";
+        confetti.style.top = "-10px";
+        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDelay = Math.random() * 0.5 + "s";
+        confetti.style.animationDuration = (Math.random() * 2 + 2.5) + "s";
+        document.body.appendChild(confetti);
+        
+        setTimeout(() => confetti.remove(), 5000);
+    }
+}
+
+function showPopup(){
+    popupOverlay.classList.add("active");
+    createConfetti();
+    
+    setTimeout(() => {
+        popupOverlay.classList.remove("active");
+    }, 2500);
+}
+
+function overlap(r1, r2, margin = 35){
+    return !(
+        r1.right + margin < r2.left ||
+        r1.left - margin > r2.right ||
+        r1.bottom + margin < r2.top ||
+        r1.top - margin > r2.bottom
+    );
+}
+
+function randomMove(){
+
+    const btnWidth = noBtn.offsetWidth;
+    const btnHeight = noBtn.offsetHeight;
+
+    const safeMargin = 10;
+
+    let attempts = 0;
+
+    while(attempts < 200){
+
+        // random trong màn hình
+        const x =
+            safeMargin +
+            Math.random() *
+            (window.innerWidth - btnWidth - safeMargin * 2);
+
+        const y =
+            safeMargin +
+            Math.random() *
+            (window.innerHeight - btnHeight - safeMargin * 2);
+
+        noBtn.style.left = x + "px";
+        noBtn.style.top = y + "px";
+
+        // reset transform để rect chuẩn
+        noBtn.style.transform = "none";
+
+        const noRect = noBtn.getBoundingClientRect();
+        const yesRect = yesBtn.getBoundingClientRect();
+        const qRect = question.getBoundingClientRect();
+
+        // không overlap
+        if(
+            !overlap(noRect, yesRect, 40) &&
+            !overlap(noRect, qRect, 40)
+        ){
+            noBtn.style.transform = "scale(1.08)";
+            return;
+        }
+
+        attempts++;
+    }
+}
+
+function handleMove(x, y){
+
+    const rect = noBtn.getBoundingClientRect();
+
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const dx = centerX - x;
+    const dy = centerY - y;
+
+    const distance = Math.sqrt(dx*dx + dy*dy);
+
+    if(distance < 130){
+        randomMove();
+    }else{
+        noBtn.style.transform = "scale(1)";
+    }
+}
+
+/* desktop */
+document.addEventListener("mousemove", e=>{
+    handleMove(e.clientX, e.clientY);
+});
+
+/* mobile */
+document.addEventListener("touchmove", e=>{
+    const t = e.touches[0];
+    handleMove(t.clientX, t.clientY);
+}, { passive:true });
+
+/* chống click */
+noBtn.addEventListener("click", e=>{
+    e.preventDefault();
+    e.stopPropagation();
+});
+
+/* nút Có */
+yesBtn.addEventListener("click", ()=>{
+    showPopup();
+});
+</script>
+
+</body>
+</html>
